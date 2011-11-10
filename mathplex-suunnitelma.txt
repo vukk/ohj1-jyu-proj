@@ -1,0 +1,65 @@
+= Suunnitelma boulderdash-vaikutteisesta pelistä =
+
+Tekijä: Unto Kuuranne
+
+== Tietoja pelistä ==
+
+ * Pelin nimi: Mathplex
+ * Pelialusta: Windows
+ * Pelaajien lukumäärä: 1 pelaaja
+
+== Pelin tarina ==
+
+Ei varsinaista tarinaa, teemana matemaattisten puzzlejen ratkaiseminen.
+Yhdistetään siis matikkaa ja 2d-pelin liikkumisen rajaamia vaihtoehtoja.
+
+== Pelin idea ja tavoitteet ==
+Gridissä kuvatussa pelissä on tarkoitus kerätä alalaitaan ilmaantuvaan
+yhtälöön numeroblockeja niin että yhtälöstä tulee tosi.
+Numeroita kerätään liikkumalla niiden kohdalle kentässä pelaajalla.
+Lopuksi käydään eval/exit painikkeen luona ja peli laskee päteekö tulos.
+
+Mikäli lauseke ei päde, aloitetaan kenttä alusta. Jos se pätee, edetään
+seuraavaan kenttään tai lopetetaan peli.
+
+== Pelin yksiköt ==
+ * Pelaaja
+ * Vihreä tyhjä block
+ * Kova block (tätä pelaaja ei voi "syödä")
+ * Eval/Exit block (lyhyemmin E) (tätä pelaaja ei voi "syödä")
+ * Numeroblockit
+   * Vihreä
+   * Keltainen tippuva block (tappaa jos tippuu pelaajan päälle)
+   * Punainen pudotessaan räjähtävä block
+   
+
+== Hahmotelma pelistä ==
+[[Image(source:/pelit/veunkaku/trunk/mathplex-suunnitelma.png)]]
+
+== Toteutuksen suunnitelma ==
+
+Lokakuu:
+ - tehdään logiikka jolla pelaaja ja muut elementit liikkuvat
+   hieman boulder dashin tapaan, mutta jypelin rajoitteissa ja boulder dash
+   logiikasta voidaan tarpeen ja mielialan mukaan joustaa paljonkin
+ - luodaan pelin alustavat palikat ja lausekkeen kenttä
+ - luodaan yksinkertainen lauseke + kenttä jolla testata
+Marraskuu:
+ - lisätään viereisiin ruutuihin vaikuttaminen esim. space + nuoli
+ - luodaan kaksi muuta leveliä ja väsätään peli menuista sun muista
+   välttämättömimmät
+ - tehdään hieman grafiikoita
+ - timer ja high scoret
+
+Jos on aikaa:
+ * lisätään kenttä "Imaginary" jossa twisti
+ * pelaajaan vaikuttava gravity ja kenttä joka hyödyntää sitä
+ * puhelinversio
+ * viholliset
+ * lisää muita blockeja enemmän boulderdashmäiseen tyyliin
+ 
+ == Level-ideoita ==
+ 
+ * Child's play (x + y = z)
+ * Pythagoras (a^2 + b^2 = c^2)
+ * Imaginary (sqrt(...) = ...)
