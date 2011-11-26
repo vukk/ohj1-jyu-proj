@@ -28,6 +28,8 @@ ikinä.
 - Tee nätimpi näyttö joka osaa kenties näyttää yhtälöt ei-asciina
 - Tee random color blockeja vain tietyillä haaleilla väreillä jotka ei sekoitu
   tummalla värjättyihin varsinaisiin peliblockeihin
+- Kenties tavalliset numeroblockit saisi random coloreilla? Transparent png ei
+  tainnut toimia?
 - Muutenkin paranna graffoja
 - Fiksaa tilemapin ja layerin gridiasetteluongelmat paremmin, kamera pitäisi
   saada pysymään levelin sisällä sen nykyisellä koodilla todella nätisti.
