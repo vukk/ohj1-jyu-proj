@@ -11,16 +11,21 @@ using AdvanceMath;
 
 namespace Mathplex
 {
+    /// @author Un​to Ku​ur​an​ne
+    /// @version 26.11.2011
+    /// <summary>
+    /// Luokka evaluaatioblockille
+    /// </summary>
     public class EvalBlock : Block 
     {
         /// <summary>
-        /// Luo uuden fysiikkaolion.
+        /// Luo uuden Eval/Exit blockin
         /// </summary>
-        /// <param name="width">Leveys.</param>
-        /// <param name="height">Korkeus.</param>
-        /// <param name="shape">Muoto.</param>
-        public EvalBlock(Grid grid, double width, double height, Shape shape)
-            : base(grid, width, height, shape)
+        /// <param name="grid">Pelin grid</param>
+        /// <param name="width">Leveys</param>
+        /// <param name="height">Korkeus</param>
+        public EvalBlock(Grid grid, double width, double height)
+            : base(grid, width, height, Shape.Rectangle)
         {
             this.IsSolid = true;
             this.Color = Color.Orange;

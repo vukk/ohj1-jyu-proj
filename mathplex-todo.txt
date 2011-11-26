@@ -1,0 +1,40 @@
+Mathplex TODO
+=============
+
+T‰m‰ ei ole niink‰‰n "tee n‰m‰" TODO, vaan ideoiden varastointipaikka
+silt‰ varalta ett‰ joku joskus jaksaa jotain tehd‰, eli ei todellakaan kukaan
+ikin‰.
+
+
+--------
+
+- Syˆt‰ Blockeille gridin sijaan gridlogic ja vaihda sen grid julkiseksi,
+  tai ehk‰ syˆt‰ molemmat
+- Tee location class/struct (niin kuin joskus oli mutta fiksummin) ja korvaa
+  sill‰ vektorin k‰yttˆ GridLocationin tyyppin‰.
+- Tee sivuttain tippuvat palikat (supaplex kuulien tyyliin)
+- Yhten‰ist‰ blockien luomista (esim. eval blockin kuva EvalBlock-obj
+  constructoriin?)
+- RectGrid
+- Tee parempia kentti‰
+- Siivoa using...
+- Alussa kamera slide Exit/Eval -> Player
+- Splash screen
+- Scoret, ajat kenties? Aikan‰yttˆ
+- Tee fiksu acceleration tippuville blockeille jota voi s‰‰t‰‰, nopeuta
+  tippumista mutta hidas acceleration, hidasta playeria
+- Fiksaa pelaajan collision eval blockiin joka ei ehdi n‰ky‰ ruudulla
+- Aja GridLogicin updatea hitaammin
+- Tee n‰timpi n‰yttˆ joka osaa kenties n‰ytt‰‰ yht‰lˆt ei-asciina
+- Tee random color blockeja vain tietyill‰ haaleilla v‰reill‰ jotka ei sekoitu
+  tummalla v‰rj‰ttyihin varsinaisiin peliblockeihin
+- Muutenkin paranna graffoja
+- Fiksaa tilemapin ja layerin gridiasetteluongelmat paremmin, kamera pit‰isi
+  saada pysym‰‰n levelin sis‰ll‰ sen nykyisell‰ koodilla todella n‰tisti.
+
+--------
+
+Erin‰isi‰ twistej‰ kenttiin:
+- Sqrt(*negative_num*) -> hypp‰‰ toiselle, kompleksiselle, tasolle
+- Kasvata pelaaja 2x kokoiseksi, vie 4 grid-ruutua
+- Random blockeja tiputtavat blockit?

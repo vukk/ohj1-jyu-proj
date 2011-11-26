@@ -9,12 +9,15 @@ using Jypeli.Controls;
 using Jypeli.Effects;
 using Jypeli.Widgets;
 
-// copypastaa koska private...
+// copypastaa koska kaikki rakastaa privatea...
 
 namespace Mathplex
 {
-    public delegate void TileMethod(Vector position, double width, double height, object arguments);
+    public delegate GameObject TileMethod(Vector position, double width, double height, object arguments);
 
+    /// @author Jypelin tekijät
+    /// @author Un​to Ku​ur​an​ne
+    /// @version 26.11.2011
     class TileMap
     {
         protected Dictionary<char, TileMethod> legend = new Dictionary<char, TileMethod>();
@@ -70,42 +73,45 @@ namespace Mathplex
         /// <param name="assetName">Tiedoston nimi</param>        
         public static TileMap FromLevelAsset(string assetName)
         {
-            string[] lines = Game.Instance.Content.Load<string[]>(assetName);
+            string[] lines = Peli.Instance.Content.Load<string[]>(assetName);
             char[,] tiles = ReadFromStringArray(lines);
             return new TileMap(tiles);
         }
 
         /// <summary>
         /// Käy kentän kaikki merkit läpi ja kutsuu <c>SetTileMethod</c>-metodilla annettuja
-        /// aliohjelmia kunkin merkin kohdalla.
-        /// </summary>
-        /// <remarks>
-        /// Aliohjelmassa voi esimerkiksi luoda olion ruudun kohdalle.
-        /// </remarks>
-        public void Execute(Grid grid)
-        {
-            double h = Game.Instance.Level.Height / tiles.GetLength(0);
-            double w = Game.Instance.Level.Width / tiles.GetLength(1);
-            Execute(grid, w, h);
-        }
-
-        /// <summary>
-        /// Käy kentän kaikki merkit läpi ja kutsuu <c>SetTileMethod</c>-metodilla annettuja
-        /// aliohjelmia kunkin merkin kohdalla.
+        /// aliohjelmia kunkin merkin kohdalla. Palauttaa täytetyn GridLogic-olion.
         /// </summary>
         /// <remarks>
         /// Aliohjelmassa voi esimerkiksi luoda olion ruudun kohdalle.
         /// </remarks>
         /// <param name="tileWidth">Yhden ruudun leveys.</param>
         /// <param name="tileHeight">Yhden ruudun korkeus.</param>
-        public void Execute(Grid grid, double tileWidth, double tileHeight)
+        /// <returns>Olioilla täytetty GridLogic-olio</returns>
+        public GridLogic Execute(Grid grid)
         {
-            Game game = Game.Instance;
+            Game game = Peli.Instance;
             int width = tiles.GetLength(1);
             int height = tiles.GetLength(0);
 
-            game.Level.Width = width * tileWidth;
-            game.Level.Height = height * tileHeight;
+            GridLogic gridLogic = new GridLogic(grid, width, height);
+
+            double tileWidth = grid.CellSize.X;
+            double tileHeight = grid.CellSize.Y;
+
+            // Tehdään kenttä sen kokoiseksi että luodut oliot ladotaan gridiin nätisti
+            // ... ja Grid.SnapToCenter toimii fiksusti
+            // Aina parillinen määrä kertoimena.
+            if (width % 2 == 0)
+                game.Level.Width = width * tileWidth + (2 * tileWidth);
+            else
+                game.Level.Width = (width * tileWidth) + (3 * tileWidth);
+
+            if (height % 2 == 0)
+                game.Level.Height = height * tileHeight + (2 * tileHeight);
+            else
+                game.Level.Height = (height * tileHeight) + (3 * tileHeight);
+
 
             for (int y = height - 1; y >= 0; y--)
             {
@@ -115,12 +121,16 @@ namespace Mathplex
                     if (legend.ContainsKey(symbol))
                     {
                         TileMethod f = legend[symbol];
-                        double realX = game.Level.Left + (x * tileWidth) + (tileWidth / 2);// + (grid.CellSize.X / 2);
-                        double realY = game.Level.Top - (y * tileHeight) - (tileHeight / 2);// + (grid.CellSize.Y / 2);
-                        f(new Vector(realX, realY), tileWidth, tileHeight, args[symbol]);
+                        double realX = game.Level.Left + (x * tileWidth) + (tileWidth / 2);
+                        double realY = game.Level.Top - (y * tileHeight) - (tileHeight / 2);
+                        GameObject o = f(new Vector(realX, realY), tileWidth, tileHeight, args[symbol]);
+                        (o as Block).GridLocation = new Vector(x, y);
+                        gridLogic.Add(y, x, o);
                     }
                 }
             }
+
+            return gridLogic;
         }
 
         /// <summary>

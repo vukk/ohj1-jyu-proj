@@ -14,9 +14,9 @@ namespace Mathplex
     /// @author Un​to Ku​ur​an​ne
     /// @version 26.11.2011
     /// <summary>
-    /// Luokka numeroblockille
+    /// Luokka oranssille tippuvalle numeroblockille
     /// </summary>
-    public class NumberBlock : Block
+    public class OrangeNumberBlock : DroppingBlock
     {
         /// <summary>
         /// Blockin arvo
@@ -30,14 +30,12 @@ namespace Mathplex
         /// <param name="width">Leveys</param>
         /// <param name="height">Korkeus</param>
         /// <param name="num">Numeroarvo</param>
-        public NumberBlock( Grid grid, double width, double height, int num )
-            : base( grid, width, height, Shape.Rectangle )
+        public OrangeNumberBlock(Grid grid, double width, double height, int num)
+            : base(grid, width, height)
         {
-            this.Image = Game.LoadImage("g" + num);
+            this.Image = Game.LoadImage("o" + num);
             this.Value = num;
             this.IsEdible = true;
-
-            // apparently labels can not be put as child objects for GameObjs :(
         }
     }
 }

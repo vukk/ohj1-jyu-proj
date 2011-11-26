@@ -113,10 +113,13 @@
     <Compile Include="Blocks\Block.cs" />
     <Compile Include="Blocks\DroppingBlock.cs" />
     <Compile Include="Blocks\NumberBlock.cs" />
+    <Compile Include="Blocks\OrangeNumberBlock.cs" />
     <Compile Include="Blocks\PlayerBlock.cs" />
     <Compile Include="Grid.cs" />
+    <Compile Include="GridLogic.cs" />
     <Compile Include="Levels\ChildsPlay.cs" />
     <Compile Include="Levels\Pythagoras.cs" />
+    <Compile Include="Levels\ShowOff.cs" />
     <Compile Include="MathLevel.cs" />
     <Compile Include="Ohjelma.cs" />
     <Compile Include="Peli.cs" />

@@ -7,31 +7,70 @@ using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Effects;
 using Jypeli.Widgets;
+
 namespace Mathplex
 {
+    /// @author Un​to Ku​ur​an​ne
+    /// @version 26.11.2011
+    /// <summary>
+    /// Luokka pelin kentälle
+    /// </summary>
     public class MathLevel
     {
+        /// <summary>
+        /// Kentän grid
+        /// </summary>
         protected Grid Grid;
+        /// <summary>
+        /// Olioiden oletuskoko
+        /// </summary>
         protected double DefaultSize;
 
+        /// <summary>
+        /// Tekstitiedosto jonka perusteella kenttä luodaan
+        /// </summary>
         protected string LevelAsset;
+        /// <summary>
+        /// Kentän ratkaistava yhtälö
+        /// </summary>
         protected string LevelEquation;
-        protected int LevelNumReq;
+        /// <summary>
+        /// Kuinka monta numeroa kentässä tulee kerätä
+        /// </summary>
+        public int LevelNumReq;
+        /// <summary>
+        /// Kentän yhtälön solveri
+        /// </summary>
         protected Predicate<List<int>> LevelSolver;
 
+
+        /// <summary>
+        /// Olio joka edustaa kenttää
+        /// </summary>
+        /// <param name="grid">Grid</param>
+        /// <param name="defaultSize">Olioiden oletuskoko</param>
         public MathLevel(Grid grid, double defaultSize)
         {
             Grid = grid;
             this.DefaultSize = defaultSize;
         }
 
-        public virtual Label UpdateEquationLabel(List<int> collected)
+
+        /// <summary>
+        /// Tämä metodi palauttaa Label olion jossa on ajantasainen
+        /// informaatio kentän ratkaisun edistymisestä
+        /// </summary>
+        /// <param name="collected">Lista kerätyistä numeroista</param>
+        /// <returns>Päivitetty Label</returns>
+        public Label UpdateEquationLabel(List<int> collected)
         {
             Label label;
 
             string[] format = Enumerable.Repeat(" ", LevelNumReq).ToArray();
 
-            for (int i = 0; i < collected.Count; i++)
+            int max = Math.Min(LevelNumReq, collected.Count);
+
+            for (int i = 0; i < max; i++)
                 format[i] = collected[i].ToString();
 
             if (collected.Count > LevelNumReq)
@@ -44,93 +83,206 @@ namespace Mathplex
             return label;
         }
 
+
+        /// <summary>
+        /// Tarkistaa onko kenttä ratkottu oikein
+        /// </summary>
+        /// <param name="collected">Lista kerätyistä numeroista</param>
+        /// <returns>Onko kenttä ratkottu oikein vai ei</returns>
         public virtual bool CheckCond(List<int> collected)
         {
             return (collected.Count >= LevelNumReq && LevelSolver(collected));
         }
 
+
+        /// <summary>
+        /// Lisää Block-objektin peliin. Kätevämpi näin.
+        /// </summary>
+        /// <param name="block">Block joka lisätään peliin</param>
         public void Add(Block block)
         {
-            Game.Instance.Add(block);
+            Peli.Instance.Add(block);
         }
 
-        public void Load()
+
+        /// <summary>
+        /// Lataa kentän
+        /// </summary>
+        public GridLogic Load()
         {
-            this.LoadLevel(LevelAsset);
+            return this.LoadLevel(LevelAsset);
         }
 
-        public void LoadLevel(string levelFile)
+
+        /// <summary>
+        /// Lataa kentän tekstitiedostosta ja luo objektit
+        /// </summary>
+        /// <param name="levelFile">Tekstitiedosto josta kenttä ladataan</param>
+        public GridLogic LoadLevel(string levelFile)
         {
             TileMap tmap = TileMap.FromLevelAsset(levelFile);
-            tmap.SetTileMethod('P', CreatePlayerBlock);
-            tmap.SetTileMethod('E', CreateEvalBlock);
-            tmap.SetTileMethod('X', CreateRedBlock);
-            tmap.SetTileMethod('K', CreateOrangeBlock);
-            tmap.SetTileMethod('.', CreateNormalBlock);
-            tmap.SetTileMethod('#', CreateHardBlock);
+
+            // Asetetaan merkeille merkityksiä objekteina
+            tmap.SetTileMethod('P', CreatePlayer);
+            tmap.SetTileMethod('E', CreateEval);
+            tmap.SetTileMethod('R', CreateRed);
+            tmap.SetTileMethod('O', CreateOrange);
+            tmap.SetTileMethod('.', CreateNormal);
+            tmap.SetTileMethod('#', CreateSolid);
 
             for (int i = 0; i <= 9; i++)
-                tmap.SetTileMethod(i.ToString().ToCharArray()[0], CreateNumberBlock, i);
+                tmap.SetTileMethod(i.ToString().ToCharArray()[0], CreateNumber, i);
 
-            tmap.Execute(Grid, Grid.Size, Grid.Size);
+            tmap.SetTileMethod('a', CreateOrangeNumber, 1);
+            tmap.SetTileMethod('b', CreateOrangeNumber, 2);
+            tmap.SetTileMethod('c', CreateOrangeNumber, 3);
+            tmap.SetTileMethod('d', CreateOrangeNumber, 4);
+            tmap.SetTileMethod('e', CreateOrangeNumber, 5);
+            tmap.SetTileMethod('f', CreateOrangeNumber, 6);
+            tmap.SetTileMethod('g', CreateOrangeNumber, 7);
+            tmap.SetTileMethod('h', CreateOrangeNumber, 8);
+            tmap.SetTileMethod('i', CreateOrangeNumber, 9);
+
+            return tmap.Execute(Grid);
         }
 
-        void CreatePlayerBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo pelaajablockin
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreatePlayer(Vector position, double width, double height, object args)
         {
             PlayerBlock player = new PlayerBlock(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
             player.Position = position;
-            (Game.Instance as Mathplex.Peli).Player = player;
+            Peli.Instance.Player = player;
             this.Add(player);
+            return player;
         }
 
-        void CreateEvalBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo Evaluate/Exit-blockin
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreateEval(Vector position, double width, double height, object args)
         {
-            EvalBlock o = new EvalBlock(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
+            EvalBlock o = new EvalBlock(Grid, DefaultSize, DefaultSize);
             o.Position = position;
+            o.Image = Game.LoadImage("e");
             this.Add(o);
+            return o;
         }
 
-        void CreateRedBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo punaisen räjähtävän blockin
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreateRed(Vector position, double width, double height, object args)
         {
-            ExplodingBlock o = new ExplodingBlock(Grid, DefaultSize, DefaultSize, Shape.Triangle);
+            ExplodingBlock o = new ExplodingBlock(Grid, DefaultSize, DefaultSize);
             o.Position = position;
             o.IsHard = true;
-            o.Color = Color.Red;
+            o.Image = Game.LoadImage("red");
             this.Add(o);
+            return o;
         }
 
-        void CreateOrangeBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo oranssin tippuvan blockin
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreateOrange(Vector position, double width, double height, object args)
         {
-            DroppingBlock o = new DroppingBlock(Grid, DefaultSize, DefaultSize, Shape.Triangle);
+            DroppingBlock o = new DroppingBlock(Grid, DefaultSize, DefaultSize);
             o.Position = position;
             o.IsHard = true;
-            o.Color = Color.Orange;
+            o.Image = Game.LoadImage("orange");
             this.Add(o);
+            return o;
         }
 
-        void CreateNormalBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo tavallisen blockin joka ei tee mitään
+        /// Blockille arvotaan väri
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreateNormal(Vector position, double width, double height, object args)
         {
             Block o = new Block(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
             o.Position = position;
             o.IsEdible = true;
             o.Color = RandomGen.NextColor();
             this.Add(o);
+            return o;
         }
 
-        void CreateHardBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo kovan blockin jota käytetään myös kentän seininä
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreateSolid(Vector position, double width, double height, object args)
         {
             Block o = new Block(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
             o.Position = position;
             o.IsSolid = true;
-            o.Color = Color.DarkGray;
+            o.Image = Game.LoadImage("solid");
             this.Add(o);
+            return o;
         }
 
-        void CreateNumberBlock(Vector position, double width, double height, object args)
+
+        /// <summary>
+        /// Luo tavallisen numeroblockin
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Numero joka blockilla on (int 0-9)</param>
+        public GameObject CreateNumber(Vector position, double width, double height, object args)
         {
             NumberBlock o = new NumberBlock(Grid, DefaultSize, DefaultSize, (int)args);
             o.Position = position;
             this.Add(o);
+            return o;
+        }
+
+
+        /// <summary>
+        /// Luo oranssin tippuvan numeroblockin
+        /// </summary>
+        /// <param name="position">Positio kentällä</param>
+        /// <param name="width">Olion leveys</param>
+        /// <param name="height">Olion korkeus</param>
+        /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
+        public GameObject CreateOrangeNumber(Vector position, double width, double height, object args)
+        {
+            OrangeNumberBlock o = new OrangeNumberBlock(Grid, DefaultSize, DefaultSize, (int)args);
+            o.Position = position;
+            this.Add(o);
+            return o;
         }
     }
 }

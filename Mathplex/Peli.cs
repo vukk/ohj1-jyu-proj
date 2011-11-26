@@ -10,60 +10,174 @@ using Jypeli.Widgets;
 
 namespace Mathplex
 {
+    /// @author Un​to Ku​ur​an​ne
+    /// @version 26.11.2011
+    /// <summary>
+    /// Mathplex peli
+    /// </summary>
     public class Peli : PhysicsGame
     {
-        private static Grid Grid = new Grid(80);
-        public static double hackdiff = 0.2;
-        public static double DefaultSize = Grid.Size - hackdiff;
+        /// <summary>
+        /// Instanssi
+        /// Koska ei aina jaksa kirjoittaa (Game.Instance as Peli).Foobar()
+        /// </summary>
+        public static new Peli Instance { get; private set; }
+        /// <summary>
+        /// Pelin grid
+        /// </summary>
+        private static Grid grid = new Grid(80);
+        /// <summary>
+        /// Kuinka paljon pienempiä blockit ovat kuin grid
+        /// </summary>
+        private static double blocksizeGridsizeDiff = 0.2;
+        /// <summary>
+        /// Blockien oletuskoko
+        /// </summary>
+        private static double blockDefaultSize = grid.Size - blocksizeGridsizeDiff;
 
-        public List<MathLevel> Levels = new List<MathLevel>();
+        /// <summary>
+        /// Lista kentistä
+        /// </summary>
+        private List<MathLevel> levels = new List<MathLevel>();
+        /// <summary>
+        /// Tällä hetkellä pelattava kenttä
+        /// </summary>
         public MathLevel CurrentLevel;
+        /// <summary>
+        /// Tällä hetkellä pelattavan kentän liikkumislogiikkaa
+        /// </summary>
+        public GridLogic GridLogic;
+        /// <summary>
+        /// Pelaajablock (ohjainten asettamista varten kätevästi saatavilla)
+        /// </summary>
         public PlayerBlock Player;
-        public Widget Display;
+        /// <summary>
+        /// Timeri jolla välillä tarkistetaan onko pelaaja vielä elossa
+        /// </summary>
+        protected Timer playerAliveCheckTimer;
+        /// <summary>
+        /// Pelin tilannenäyttö
+        /// </summary>
+        private Widget display;
 
+        /// <summary>
+        /// Kerätyt luvut
+        /// </summary>
         public List<int> Collected = new List<int>();
-        public bool CollectedUpdated = false;
+        /// <summary>
+        /// Onko kerättyjen lukujen listaa päivitetty
+        /// </summary>
+        public bool CollectedUpdatedFlag = false;
 
+
+        /// <summary>
+        /// Pelin aloitusmetodi
+        /// </summary>
+        public override void Begin()
+        {
+            Instance = this;
+
+            // display grid at layer -3
+            this.GetLayer(-3).Grid = grid;
+
+            ScreenView sw = Game.Screen;
+            this.SetWindowSize((int)sw.Width - 200, (int)sw.Height - 200);
+            //this.SetWindowSize(800, 600);
+
+            Level.BackgroundColor = Color.DarkGreen;
+
+            // add levels
+            levels.Add(new Levels.ChildsPlay(grid, blockDefaultSize));
+            levels.Add(new Levels.Pythagoras(grid, blockDefaultSize));
+            levels.Add(new Levels.ShowOff(grid, blockDefaultSize));
+
+            // load first level
+            LoadNextLevel();
+        }
+
+
+        /// <summary>
+        /// Tarkistaa onko kenttä ratkaistu oikein;
+        /// vaihtaa seuraavaan kenttään jos on,
+        /// viestii tarvittavista lisänumeroista tai
+        /// reloadaa nykyisen levelin jos ei ole ratkottu
+        /// oikein.
+        /// </summary>
         public void CheckCond()
         {
             Debug.Print("Checking condition");
+
             if (CurrentLevel.CheckCond(Collected))
             {
-                Levels.RemoveAt(0);
+                // poistetaan tämänhetkinen lvl
+                levels.RemoveAt(0);
 
-                if (Levels.Count > 0)
+                // lisää leveleitä vai ei
+                if (levels.Count > 0)
                 {
                     LoadNextLevel();
+                    MessageDisplay.Add("Nicely done!");
                 }
                 else
                 {
                     this.Exit();
                 }
             }
+            else if (Collected.Count >= CurrentLevel.LevelNumReq)
+            {
+                LoadNextLevel(); // reload
+                MessageDisplay.Add("Wrong answer, try again!");
+            }
+            else
+            {
+                MessageDisplay.Add("You need to collect more...");
+            }
         }
 
-        public void LoadNextLevel()
+
+        /// <summary>
+        /// Lataa seuraavan levelin
+        /// </summary>
+        protected void LoadNextLevel()
         {
+            // putsataan aivan kaikki, myös näppäimet
             ClearAll();
 
+            // tyhjätään collected
             Collected = new List<int>();
-            CollectedUpdated = false;
+            CollectedUpdatedFlag = false;
 
-            // create display box
+            // luodaan display
             CreateDisplay();
 
-            CurrentLevel = Levels[0];
-            CurrentLevel.Load();
+            // ladataan kenttä
+            CurrentLevel = levels[0];
+            GridLogic = CurrentLevel.Load();
 
+            // päivitetään display
             UpdateDisplay();
 
+            // asetetaan ohjaimet
             SetControls();
 
-            Camera.Follow(Player);
+            // elossaolo-timer
+            Timer timer = new Timer();
+            timer.Interval = 4;
+            timer.Timeout += PelaajaElossa;
+            playerAliveCheckTimer = timer;
+            timer.Start();
+
+            // kamera
+            Camera.StayInLevel = true;
             Camera.Zoom(1);
+            Camera.Follow(Player);
         }
 
-        public void SetControls()
+
+        /// <summary>
+        /// Asettaa ohjaimet
+        /// </summary>
+        protected void SetControls()
         {
             Keyboard.Listen(Key.Escape, ButtonState.Pressed, Exit, "Poistu");
             Keyboard.Listen(Key.F1, ButtonState.Pressed, ShowControlHelp, "Näytä näppäinohjeet");
@@ -81,55 +195,46 @@ namespace Mathplex
 #endif
         }
 
-        public void UpdateDisplay()
-        {
-            Display.Clear();
-            Display.Add(CurrentLevel.UpdateEquationLabel(Collected));
-            CollectedUpdated = false;
-        }
-
-        public override void Begin()
-        {
-            // display grid at layer -3
-            this.GetLayer(-3).Grid = Grid;
-
-            ScreenView sw = Game.Screen;
-            this.SetWindowSize((int)sw.Width - 200, (int)sw.Height - 200);
-            //this.SetWindowSize(800, 600);
-
-            Level.BackgroundColor = Color.DarkGreen;
-            //Level.BackgroundColor = Color.DarkViolet;
-
-            // add levels
-            Levels.Add(new Levels.ChildsPlay(Grid, DefaultSize));
-            Levels.Add(new Levels.Pythagoras(Grid, DefaultSize));
-
-            // load first level
-            LoadNextLevel();
-        }
 
 #if DEBUG
-        public static Label DebugPositionLabel;
-
-        public void ShowDebugCoord()
+        protected void ShowDebugCoord()
         {
             GameObject o = this.GetObjectAt(Mouse.PositionOnWorld);
-            if (o != null)
-                MessageDisplay.Add("Clicked object at position: " + o.Position);
+            if (o != null && o is Block)
+                MessageDisplay.Add("Clicked object at position: " + o.Position + " location: " + (o as Block).GridLocation);
         }
 #endif
 
+
         /// <summary>
-        /// Liikuta blockia annetun vektorin mukaisesti.
+        /// Tarkistaa onko pelaaja vielä elossa, jos ei niin
+        /// restartataan level.
+        /// </summary>
+        public void PelaajaElossa()
+        {
+            if (Player.IsDestroyed)
+            {
+                LoadNextLevel(); // reload
+                MessageDisplay.Add("You died, try again!");
+            }
+        }
+
+
+        /// <summary>
+        /// Liikuta blockia annetun vektorin mukaisesti, ohjainten asettamista varten
         /// </summary>
         /// <param name="block">Block jota siirretään</param>
         /// <param name="suunta">Vektori jonka mukaan siirretään</param>
-        private void MoveBlock(Block block, Vector suunta)
+        protected void MoveBlock(Block block, Vector suunta)
         {
             block.Move(suunta);
         }
 
-        void CreateDisplay()
+
+        /// <summary>
+        /// Luo tilannenäytön
+        /// </summary>
+        protected void CreateDisplay()
         {
             Widget laatikko = new Widget(Screen.WidthSafe, Screen.HeightSafe / 10);
             laatikko.Y = Screen.Bottom + laatikko.Height / 2;
@@ -140,17 +245,36 @@ namespace Mathplex
             label.TextColor = Color.LightGray;
             laatikko.Add(label);
 
-            Display = laatikko;
+            display = laatikko;
 
             this.Add(laatikko);
         }
 
+
+        /// <summary>
+        /// Päivittää tilannenäytön
+        /// </summary>
+        public void UpdateDisplay()
+        {
+            display.Clear();
+            display.Add(CurrentLevel.UpdateEquationLabel(Collected));
+            CollectedUpdatedFlag = false;
+        }
+
+
+        /// <summary>
+        /// Päivitysmetodi pelille
+        /// </summary>
+        /// <param name="time">Aika</param>
         protected override void Update(Time time)
         {
-            if (CollectedUpdated)
+            if (CollectedUpdatedFlag)
             {
                 UpdateDisplay();
             }
+
+            GridLogic.Update(time);
+
             base.Update(time);
         }
     }

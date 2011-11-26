@@ -8,23 +8,22 @@ namespace Mathplex.Levels
     /// @author Unto Kuuranne
     /// @version 26.11.2011
     /// <summary>
-    /// "Pythagoras" kenttä
+    /// "Show Off" kenttä
     /// </summary>
-    public class Pythagoras : MathLevel
+    public class ShowOff : MathLevel
     {
         /// <summary>
         /// Luodaan kenttä
         /// </summary>
         /// <param name="grid">Pelin grid</param>
         /// <param name="defaultSize">Blockien oletuskoko</param>
-        public Pythagoras(Grid grid, double defaultSize)
+        public ShowOff(Grid grid, double defaultSize)
             : base(grid, defaultSize)
         {
-            this.LevelAsset = "lvl_pythagoras2";
-            this.LevelEquation = "[{0}]^2 + [{1}]^2 = [{2}]^2";
-            this.LevelNumReq = 3;
-            this.LevelSolver = x => (Math.Pow(x[0], 2) + Math.Pow(x[1], 2) - Math.Pow(x[2], 2) < Double.Epsilon);
+            this.LevelAsset = "lvl_showoff";
+            this.LevelEquation = "[{0}] + [{1}] + [{2}] + [{3}] - [{4}] = [{5}] + [{6}]";
+            this.LevelNumReq = 7;
+            this.LevelSolver = x => x[0] + x[1] + x[2] + x[3] - x[4] - x[5] - x[6] == 0;
         }
     }
 }
-

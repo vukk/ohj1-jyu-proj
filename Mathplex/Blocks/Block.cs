@@ -7,59 +7,98 @@ using Jypeli.Assets;
 using Jypeli.Controls;
 using Jypeli.Effects;
 using Jypeli.Widgets;
-using AdvanceMath;
 
 namespace Mathplex
 {
+    /// @author Un​to Ku​ur​an​ne
+    /// @version 26.11.2011
+    /// <summary>
+    /// Mathplexin perusblockin luokka
+    /// </summary>
     public class Block : Jypeli.PhysicsObject
     {
+        /// <summary>
+        /// Pelin grid
+        /// </summary>
         public Grid Grid;
+
+        /// <summary>
+        /// Sijainti gridissä
+        /// </summary>
+        public Vector GridLocation = new Vector();
 
         // Solid block can not be moved or destroyed
         private bool _IsSolid = false;
+        /// <summary>
+        /// Onko block kiinteä
+        /// Kiinteää blockia ei voi syödä, liikuttaa tai räjäyttää
+        /// </summary>
         public bool IsSolid {
             get { return this._IsSolid; }
             set
             {
                 this._IsSolid = value;
                 if (value == true) this.IsHard = true;
+                if (value == true) this.IsEdible = false;
             }
         }
 
-        // Hard block can not be eaten
         private bool _IsHard = false;
+        /// <summary>
+        /// Onko block kova (tuhoaa pelaajan tippuessa päälle)
+        /// </summary>
         public bool IsHard
         {
             get { return this._IsHard; }
             set
             {
                 this._IsHard = value;
-                if (value == true) this.IsEdible = false;
             }
         }
 
+        // Edible block is edible by the player block
         private bool _IsEdible = false;
+        /// <summary>
+        /// Onko block pelaajan syötävä vai ei
+        /// </summary>
         public bool IsEdible
         {
             get { return this._IsEdible; }
             set
             {
                 this._IsEdible = value;
-                if (value == true) this.IsHard = false;
             }
         }
 
-        public new double Acceleration = 100;
-        public new double MaxVelocity = 100;
+        public double MaxVelocity = 100;
 
+        /// <summary>
+        /// Onko block liikkeessä
+        /// </summary>
         public bool IsMoving = false;
 
         /// <summary>
-        /// Luo uuden fysiikkaolion.
+        /// Liikkumisen aloituspaikka
         /// </summary>
-        /// <param name="width">Leveys.</param>
-        /// <param name="height">Korkeus.</param>
-        /// <param name="shape">Muoto.</param>
+        public Vector MovingFrom = new Vector();
+        /// <summary>
+        /// Paikka johon ollaan kenties liikkumassa (jonka kertoo IsMoving)
+        /// </summary>
+        public Vector MovingTo = new Vector();
+
+        /// <summary>
+        /// Mitkä tekijät määräävät blockin liikkumisen johonkin ruutuun
+        /// </summary>
+        public List<Predicate<Block>> limitFactors = new List<Predicate<Block>>();
+
+
+        /// <summary>
+        /// Luo uuden blockin
+        /// </summary>
+        /// <param name="grid">Pelin grid</param>
+        /// <param name="width">Leveys</param>
+        /// <param name="height">Korkeus</param>
+        /// <param name="shape">Muoto</param>
         public Block( Grid grid, double width, double height, Shape shape )
             : base( width, height, shape )
         {
@@ -70,52 +109,45 @@ namespace Mathplex
             this.IgnoresGravity = true;
             this.CollisionIgnoreGroup = 1;
 
-            this.Acceleration = Grid.Size;
             this.MaxVelocity = Grid.Size;
 
             this.Arrived += BlockArrived;
         }
 
-        protected void BlockArrived(IGameObject obj, Vector location)
+
+        /// <summary>
+        /// Blockin saapumis-event
+        /// </summary>
+        /// <param name="self">Block joka saapui</param>
+        /// <param name="location">Saapumispaikka</param>
+        protected void BlockArrived(IGameObject self, Vector location)
         {
             Debug.Print("Moving Block Arrived at: " + location);
 
-            Block o = obj as Block;
+            Block o = self as Block;
 
             o.Stop();
             o.Position = location; // not trusting the code ololololo
+            o.GridLocation = MovingTo;
             o.IsMoving = false;
+
+            Peli.Instance.GridLogic.Arrived(this, MovingFrom, MovingTo);
         }
 
-        public virtual bool CanMoveTo(Vector to)
-        {
-            Predicate<Block> isHardCheck = delegate(Block x) { return x.IsHard; };
-
-            return CanMoveTo(to, new List<Predicate<Block>> { isHardCheck });
-        }
-
-        public bool CanMoveTo(Vector to, List<Predicate<Block>> limitFactors)
-        {
-            Level lvl = Peli.Instance.Level;
-
-            // limit to level boundaries
-            if (to.X > lvl.Right || to.X < lvl.Left || to.Y > lvl.Top || to.Y < lvl.Bottom)
-            {
-                Debug.Print("Moving Block was limited by level boundaries");
-                return false;
-            }
-
-            // check that none of the limiting factors apply to the object at location to
-            // ... if there is an object there
-            // ... so: if all predicates yield true, then movement is limited
-            Block atLoc = Peli.Instance.GetObjectAt(to) as Block;
-            if (atLoc != null && limitFactors.All(predicate => predicate(atLoc) == true)) return false;
-
-            return true;
-        }
 
         /// <summary>
-        /// Siirtää oliota.
+        /// Voiko block liikkua paikkaan <c>to</c> vai ei.
+        /// </summary>
+        /// <param name="to">Paikka johon liikkua</param>
+        /// <returns>Voidaanko paikkaan liikkua</returns>
+        public virtual bool CanMoveTo(Vector to)
+        {
+            return Peli.Instance.GridLogic.CanMoveTo(to, limitFactors);
+        }
+
+
+        /// <summary>
+        /// Siirtää blockia
         /// </summary>
         /// <param name="movement">Vektori, joka määrittää kuinka paljon siirretään.</param>
         public override void Move(Vector movement)
@@ -123,68 +155,51 @@ namespace Mathplex
             if (this.IsMoving == true) return;
 
             Vector to = this.Position + (new Vector(movement.X * Grid.CellSize.X, movement.Y * Grid.CellSize.Y));
+            Vector toLoc = new Vector(this.GridLocation.X + movement.X, this.GridLocation.Y - movement.Y);
 
             // voidaanko liikkua...
-            if (this.CanMoveTo(to) == false) return;
+            if (this.CanMoveTo(toLoc) == false) return;
             
             // liikutaan
+            this.MovingFrom = this.GridLocation;
+            // GridLocation ja GameObj.Position Y-liikkeet ovat vastakkaisia...
+            this.MovingTo = toLoc;
             this.MoveTo(to, this.MaxVelocity * 10);
             this.IsMoving = true;
         }
 
+
+        /// <summary>
+        /// Palauttaa blockin välittömät naapurit
+        /// </summary>
+        /// <param name="obj">Block jonka naapurit halutaan</param>
+        /// <returns>Blockin naapurit listana</returns>
         public static List<GameObject> GetImmediateSurroundings(Block obj)
         {
-            // TODO: remove?
-            Game.Instance.GetLayer(0).Update(Game.Time); // synchronize main layer object list
-
-            Vector position = obj.Grid.SnapToLines(obj.Position);
-            Debug.Print("Grid.Size: " + obj.Grid.Size + " Grid.CellSize.X: " + obj.Grid.CellSize.X + " Grid.CellSize.Y: " + obj.Grid.CellSize.Y);
-            Debug.Print("GetImmediateSurroundings: pos " + position + " orig.pos " + obj.Position);
-            return GetSurroundings(position, obj.Grid.Size + 1);
+            return Peli.Instance.GridLogic.GetImmediateSurroundings(obj.GridLocation);
         }
 
+
+        /// <summary>
+        /// Palauttaa kahden eri blockin välittömät naapurit yhdessä listassa
+        /// </summary>
+        /// <param name="one">Ensimmäinen block jonka naapurit halutaan</param>
+        /// <param name="two">Toinen block jonka naapurit halutaan</param>
+        /// <returns>Blockien naapurit listana</returns>
         public static List<GameObject> GetImmediateSurroundings(Block one, Block two)
         {
-            Game.Instance.GetLayer(0).Update(Game.Time); // synchronize main layer object list
-
             List<GameObject> list = GetImmediateSurroundings(one);
             list.Concat<GameObject>(GetImmediateSurroundings(two));
 
             return list;
         }
 
+
         /// <summary>
-        /// Gets surrounding objects of position by radius, returns those objects which have
-        /// a center point in the radius. Radius is calculated from the position that is snapped to grid.
+        /// Koittaa räjäyttää tämä block
+        /// Ei räjäytä jo tuhottuja tai kiinteitä blockeja
         /// </summary>
-        /// <param name="o"></param>
-        /// <param name="radius"></param>
-        /// <returns></returns>
-        public static List<GameObject> GetSurroundings(Vector position, double radius)
-        {
-            // remember to synchronize layer objects before calling this method
-            // ... if needed
-            // Game.Instance.GetLayer(0).Update(Game.Time); // synchronize main layer object list
-
-            Predicate<GameObject> isCenterPointInsideRadius = delegate(GameObject obj)
-            {
-                bool res = (obj.Position.X < position.X + radius && obj.Position.X > position.X - radius &&
-                        obj.Position.Y < position.Y + radius && obj.Position.Y > position.Y - radius);
-
-                if (res)
-                {
-                    Debug.Print("Is inside");
-                    Debug.Print("X: " + obj.Position.X + " < " + (position.X + radius) + ", " + obj.Position.X + " > " + (position.X - radius));
-                    Debug.Print("Y: " + obj.Position.Y + " < " + (position.Y + radius) + ", " + obj.Position.Y + " > " + (position.Y - radius));
-                }
-
-                return res;
-            };
-
-            return Game.Instance.GetObjects(isCenterPointInsideRadius);
-        }
-
-        public void TryExplode()
+        public virtual void TryExplode()
         {
             if (this.IsDestroyed) return;
             if (this.IsSolid) return;
@@ -194,25 +209,14 @@ namespace Mathplex
             expl.Force = 0;
             expl.ShockwaveColor = Color.LightPink;
             expl.Position = this.Position;
-            Game.Instance.Add(expl);
+            Peli.Instance.Add(expl);
             this.Destroy();
         }
 
-        public void DestroyInExplosion(IPhysicsObject obj)
-        {
-            if (obj.IsDestroyed) return;
-            if ((string)obj.Tag == "hard") return;
 
-            Explosion rajahdys = new Explosion(Grid.CellSize.Y);
-            //rajahdys.Sound = LoadSoundEffect("implosionSound"); // todo: fix sounds
-            rajahdys.Force = 0;
-            rajahdys.ShockwaveColor = Color.LightPink;
-            rajahdys.Position = obj.Position;
-            Game.Instance.Add(rajahdys);
-            obj.Destroy();
-            //obj.Color = Color.Black;
-        }
-
+        /// <summary>
+        /// Tuhoa block jos se ei ole kova
+        /// </summary>
         public void DestroyIfNotHard()
         {
             if (!this.IsHard) this.Destroy();
