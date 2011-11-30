@@ -11,7 +11,7 @@ using Jypeli.Widgets;
 namespace Mathplex
 {
     /// @author Un​to Ku​ur​an​ne
-    /// @version 26.11.2011
+    /// @version 30.11.2011
     /// <summary>
     /// Mathplex peli
     /// </summary>
@@ -76,6 +76,9 @@ namespace Mathplex
         public override void Begin()
         {
             Instance = this;
+
+            // mute
+            SoundEffect.MasterVolume = 0.0;
 
             // display grid at layer -3
             this.GetLayer(-3).Grid = grid;

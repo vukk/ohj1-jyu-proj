@@ -20,10 +20,10 @@ namespace Mathplex.Levels
         public Pythagoras(Grid grid, double defaultSize)
             : base(grid, defaultSize)
         {
-            this.LevelAsset = "lvl_pythagoras2";
-            this.LevelEquation = "[{0}]^2 + [{1}]^2 = [{2}]^2";
+            this.levelAsset = "lvl_pythagoras2";
+            this.levelEquation = "[{0}]^2 + [{1}]^2 = [{2}]^2";
             this.LevelNumReq = 3;
-            this.LevelSolver = x => (Math.Pow(x[0], 2) + Math.Pow(x[1], 2) - Math.Pow(x[2], 2) < Double.Epsilon);
+            this.levelSolver = x => (Math.Pow(x[0], 2) + Math.Pow(x[1], 2) - Math.Pow(x[2], 2) < Double.Epsilon);
         }
     }
 }

@@ -8,21 +8,23 @@ namespace Mathplex
     /// @version 26.11.2011
     public class Grid : Jypeli.Grid
     {
-        private int _Size;
+        private int _size;
         /// <summary>
         /// Gridin koko, käytetään sekä pituutena että leveytenä
         /// </summary>
         public int Size
         {
-            get { return this._Size; }
+            get { return this._size; }
             set
             {
                 this.CellSize = new Vector(value, value);
-                this._Size = value;
+                this._size = value;
             }
         }
 
-
+        /// <summary>
+        /// Luo uuden Grid-olion
+        /// </summary>
         public Grid()
         {
             Color = Color.Black;
@@ -30,7 +32,10 @@ namespace Mathplex
             CellSize = new Vector(Size, Size);
         }
 
-
+        /// <summary>
+        /// Luo uuden Grid-olion annetulla koolla
+        /// </summary>
+        /// <param name="size">Sivun pituus (molemmat sivut, neliö)</param>
         public Grid(int size)
         {
             Color = Color.Black;

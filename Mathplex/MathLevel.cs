@@ -20,20 +20,20 @@ namespace Mathplex
         /// <summary>
         /// Kentän grid
         /// </summary>
-        protected Grid Grid;
+        protected Grid grid;
         /// <summary>
         /// Olioiden oletuskoko
         /// </summary>
-        protected double DefaultSize;
+        protected double defaultSize;
 
         /// <summary>
         /// Tekstitiedosto jonka perusteella kenttä luodaan
         /// </summary>
-        protected string LevelAsset;
+        protected string levelAsset;
         /// <summary>
         /// Kentän ratkaistava yhtälö
         /// </summary>
-        protected string LevelEquation;
+        protected string levelEquation;
         /// <summary>
         /// Kuinka monta numeroa kentässä tulee kerätä
         /// </summary>
@@ -41,7 +41,7 @@ namespace Mathplex
         /// <summary>
         /// Kentän yhtälön solveri
         /// </summary>
-        protected Predicate<List<int>> LevelSolver;
+        protected Predicate<List<int>> levelSolver;
 
 
         /// <summary>
@@ -51,8 +51,8 @@ namespace Mathplex
         /// <param name="defaultSize">Olioiden oletuskoko</param>
         public MathLevel(Grid grid, double defaultSize)
         {
-            Grid = grid;
-            this.DefaultSize = defaultSize;
+            this.grid = grid;
+            this.defaultSize = defaultSize;
         }
 
 
@@ -76,7 +76,7 @@ namespace Mathplex
             if (collected.Count > LevelNumReq)
                 label = new Label("You collected too many numbers");
             else
-                label = new Label(String.Format(LevelEquation, format));
+                label = new Label(String.Format(levelEquation, format));
 
             label.TextColor = Color.LightGray;
 
@@ -91,7 +91,7 @@ namespace Mathplex
         /// <returns>Onko kenttä ratkottu oikein vai ei</returns>
         public virtual bool CheckCond(List<int> collected)
         {
-            return (collected.Count >= LevelNumReq && LevelSolver(collected));
+            return (collected.Count >= LevelNumReq && levelSolver(collected));
         }
 
 
@@ -110,7 +110,7 @@ namespace Mathplex
         /// </summary>
         public GridLogic Load()
         {
-            return this.LoadLevel(LevelAsset);
+            return this.LoadLevel(levelAsset);
         }
 
 
@@ -143,7 +143,7 @@ namespace Mathplex
             tmap.SetTileMethod('h', CreateOrangeNumber, 8);
             tmap.SetTileMethod('i', CreateOrangeNumber, 9);
 
-            return tmap.Execute(Grid);
+            return tmap.Execute(grid);
         }
 
 
@@ -156,7 +156,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreatePlayer(Vector position, double width, double height, object args)
         {
-            PlayerBlock player = new PlayerBlock(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
+            PlayerBlock player = new PlayerBlock(grid, defaultSize, defaultSize, Shape.Rectangle);
             player.Position = position;
             Peli.Instance.Player = player;
             this.Add(player);
@@ -173,7 +173,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreateEval(Vector position, double width, double height, object args)
         {
-            EvalBlock o = new EvalBlock(Grid, DefaultSize, DefaultSize);
+            EvalBlock o = new EvalBlock(grid, defaultSize, defaultSize);
             o.Position = position;
             o.Image = Game.LoadImage("e");
             this.Add(o);
@@ -190,7 +190,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreateRed(Vector position, double width, double height, object args)
         {
-            ExplodingBlock o = new ExplodingBlock(Grid, DefaultSize, DefaultSize);
+            ExplodingBlock o = new ExplodingBlock(grid, defaultSize, defaultSize);
             o.Position = position;
             o.IsHard = true;
             o.Image = Game.LoadImage("red");
@@ -208,7 +208,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreateOrange(Vector position, double width, double height, object args)
         {
-            DroppingBlock o = new DroppingBlock(Grid, DefaultSize, DefaultSize);
+            DroppingBlock o = new DroppingBlock(grid, defaultSize, defaultSize);
             o.Position = position;
             o.IsHard = true;
             o.Image = Game.LoadImage("orange");
@@ -227,7 +227,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreateNormal(Vector position, double width, double height, object args)
         {
-            Block o = new Block(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
+            Block o = new Block(grid, defaultSize, defaultSize, Shape.Rectangle);
             o.Position = position;
             o.IsEdible = true;
             o.Color = RandomGen.NextColor();
@@ -245,7 +245,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreateSolid(Vector position, double width, double height, object args)
         {
-            Block o = new Block(Grid, DefaultSize, DefaultSize, Shape.Rectangle);
+            Block o = new Block(grid, defaultSize, defaultSize, Shape.Rectangle);
             o.Position = position;
             o.IsSolid = true;
             o.Image = Game.LoadImage("solid");
@@ -263,7 +263,7 @@ namespace Mathplex
         /// <param name="args">Numero joka blockilla on (int 0-9)</param>
         public GameObject CreateNumber(Vector position, double width, double height, object args)
         {
-            NumberBlock o = new NumberBlock(Grid, DefaultSize, DefaultSize, (int)args);
+            NumberBlock o = new NumberBlock(grid, defaultSize, defaultSize, (int)args);
             o.Position = position;
             this.Add(o);
             return o;
@@ -279,7 +279,7 @@ namespace Mathplex
         /// <param name="args">Muut argumentit (jätetään huomiotta)</param>
         public GameObject CreateOrangeNumber(Vector position, double width, double height, object args)
         {
-            OrangeNumberBlock o = new OrangeNumberBlock(Grid, DefaultSize, DefaultSize, (int)args);
+            OrangeNumberBlock o = new OrangeNumberBlock(grid, defaultSize, defaultSize, (int)args);
             o.Position = position;
             this.Add(o);
             return o;

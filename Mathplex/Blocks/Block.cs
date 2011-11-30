@@ -28,45 +28,45 @@ namespace Mathplex
         public Vector GridLocation = new Vector();
 
         // Solid block can not be moved or destroyed
-        private bool _IsSolid = false;
+        private bool _isSolid = false;
         /// <summary>
         /// Onko block kiinteä
         /// Kiinteää blockia ei voi syödä, liikuttaa tai räjäyttää
         /// </summary>
         public bool IsSolid {
-            get { return this._IsSolid; }
+            get { return this._isSolid; }
             set
             {
-                this._IsSolid = value;
+                this._isSolid = value;
                 if (value == true) this.IsHard = true;
                 if (value == true) this.IsEdible = false;
             }
         }
 
-        private bool _IsHard = false;
+        private bool _isHard = false;
         /// <summary>
         /// Onko block kova (tuhoaa pelaajan tippuessa päälle)
         /// </summary>
         public bool IsHard
         {
-            get { return this._IsHard; }
+            get { return this._isHard; }
             set
             {
-                this._IsHard = value;
+                this._isHard = value;
             }
         }
 
         // Edible block is edible by the player block
-        private bool _IsEdible = false;
+        private bool _isEdible = false;
         /// <summary>
         /// Onko block pelaajan syötävä vai ei
         /// </summary>
         public bool IsEdible
         {
-            get { return this._IsEdible; }
+            get { return this._isEdible; }
             set
             {
-                this._IsEdible = value;
+                this._isEdible = value;
             }
         }
 

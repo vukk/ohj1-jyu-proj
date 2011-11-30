@@ -20,10 +20,10 @@ namespace Mathplex.Levels
         public ShowOff(Grid grid, double defaultSize)
             : base(grid, defaultSize)
         {
-            this.LevelAsset = "lvl_showoff";
-            this.LevelEquation = "[{0}] + [{1}] + [{2}] + [{3}] - [{4}] = [{5}] + [{6}]";
+            this.levelAsset = "lvl_showoff";
+            this.levelEquation = "[{0}] + [{1}] + [{2}] + [{3}] - [{4}] = [{5}] + [{6}]";
             this.LevelNumReq = 7;
-            this.LevelSolver = x => x[0] + x[1] + x[2] + x[3] - x[4] - x[5] - x[6] == 0;
+            this.levelSolver = x => x[0] + x[1] + x[2] + x[3] - x[4] - x[5] - x[6] == 0;
         }
     }
 }
