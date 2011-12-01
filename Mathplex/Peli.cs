@@ -29,7 +29,7 @@ namespace Mathplex
         /// <summary>
         /// Kuinka paljon pienempiä blockit ovat kuin grid
         /// </summary>
-        private static double blocksizeGridsizeDiff = 0.2;
+        private static double blocksizeGridsizeDiff = 0.8;
         /// <summary>
         /// Blockien oletuskoko
         /// </summary>
@@ -83,8 +83,8 @@ namespace Mathplex
             // display grid at layer -3
             this.GetLayer(-3).Grid = grid;
 
-            ScreenView sw = Game.Screen;
-            this.SetWindowSize((int)sw.Width - 200, (int)sw.Height - 200);
+            //ScreenView sw = Game.Screen;
+            //this.SetWindowSize((int)sw.Width - 200, (int)sw.Height - 200);
             //this.SetWindowSize(800, 600);
 
             Level.BackgroundColor = Color.DarkGreen;
